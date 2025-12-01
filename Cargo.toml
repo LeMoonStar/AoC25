@@ -1,0 +1,22 @@
+[package]
+name = "aoc25"
+version = "0.1.0"
+edition = "2024"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = { version = "2.34", features = ["suggestions", "color", "wrap_help"] }
+colored = "2.0"
+aoc-macro = {path="aoc-macro"}
+reqwest = { version = "0.11", features=["cookies", "blocking"] }
+mut_static="5.0"
+lazy_static="1.4"
+regex = "1.11"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = 'abort'
+strip = true
