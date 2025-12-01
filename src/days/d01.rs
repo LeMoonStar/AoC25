@@ -52,17 +52,51 @@ fn wrap_number(number: i16, min: i16, max: i16) -> i16 {
 }
 
 impl RotationSequence {
-    fn get_direction_sequence(&self) -> Vec<u8> {
-        let mut directions = Vec::with_capacity(self.0.len());
-
+    fn get_full_rotation_zero_count(&self) -> usize {
         let mut current: i16 = 50;
+        let mut count = 0;
+
         for rotation in &self.0 {
             current = wrap_number(current + rotation.as_signed_int(), 0, 99);
 
-            directions.push(current as u8);
+            if current == 0 {
+                count += 1;
+            }
         }
 
-        directions
+        count
+    }
+
+    fn get_partial_rotation_zero_count(&self) -> usize {
+        let mut current: i16 = 50;
+        let mut count = 0;
+
+        for rotation in &self.0 {
+            let mut current_rotation = *rotation;
+
+            loop {
+                match &mut current_rotation {
+                    Rotation::Left(0) => break,
+                    Rotation::Right(0) => break,
+                    Rotation::Left(value) => {
+                        current += 1;
+                        *value -= 1;
+                    }
+                    Rotation::Right(value) => {
+                        current -= 1;
+                        *value -= 1;
+                    }
+                }
+
+                current = wrap_number(current, 0, 99);
+
+                if current == 0 {
+                    count += 1;
+                }
+            }
+        }
+
+        count
     }
 }
 
@@ -73,7 +107,7 @@ impl DayImpl<Data> for Day<CURRENT_DAY> {
     }
 
     fn expected_results() -> (Answer, Answer) {
-        (Answer::Number(3), Answer::Number(0))
+        (Answer::Number(3), Answer::Number(6))
     }
 
     fn init(input: &str) -> (Self, Data) {
@@ -81,12 +115,10 @@ impl DayImpl<Data> for Day<CURRENT_DAY> {
     }
 
     fn one(&self, data: &mut Data) -> Answer {
-        let sequence = data.get_direction_sequence();
-
-        Answer::Number(sequence.into_iter().filter(|v| *v == 0).count() as u64)
+        Answer::Number(data.get_full_rotation_zero_count() as u64)
     }
 
     fn two(&self, data: &mut Data) -> Answer {
-        Answer::Number(0 as u64)
+        Answer::Number(data.get_partial_rotation_zero_count() as u64)
     }
 }
