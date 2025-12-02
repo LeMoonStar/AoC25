@@ -88,7 +88,7 @@ impl From<&str> for ProductIdRangeList {
 }
 
 impl ProductIdRangeList {
-    fn sum_invalid_ids(&self) -> u64 {
+    fn sum_twice_invalid_ids(&self) -> u64 {
         self.0
             .iter()
             .map(|range| range.iter())
@@ -109,6 +109,24 @@ impl ProductIdRangeList {
             //.inspect(|id| println!("{}", id))
             .sum()
     }
+
+    fn sum_any_invalid_ids(&self) -> u64 {
+        self.0
+            .iter()
+            .map(|range| range.iter())
+            .flatten()
+            .filter_map(|id| {
+                let digits = to_digits(id);
+
+                if !detect_repetition(&digits).is_empty() {
+                    Some(id)
+                } else {
+                    None
+                }
+            })
+            //.inspect(|id| println!("{}", id))
+            .sum()
+    }
 }
 
 type Data = ProductIdRangeList;
@@ -118,7 +136,7 @@ impl DayImpl<Data> for Day<CURRENT_DAY> {
     }
 
     fn expected_results() -> (Answer, Answer) {
-        (Answer::Number(1227775554), Answer::Number(0))
+        (Answer::Number(1227775554), Answer::Number(4174379265))
     }
 
     fn init(input: &str) -> (Self, Data) {
@@ -126,10 +144,10 @@ impl DayImpl<Data> for Day<CURRENT_DAY> {
     }
 
     fn one(&self, data: &mut Data) -> Answer {
-        Answer::Number(data.sum_invalid_ids() as u64)
+        Answer::Number(data.sum_twice_invalid_ids() as u64)
     }
 
     fn two(&self, data: &mut Data) -> Answer {
-        Answer::Number(data.0.len() as u64)
+        Answer::Number(data.sum_any_invalid_ids() as u64)
     }
 }
