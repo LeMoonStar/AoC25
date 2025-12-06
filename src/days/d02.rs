@@ -46,12 +46,10 @@ fn detect_repetition<T: PartialEq>(slice: &[T]) -> Vec<(&[T], usize)> {
     let slice_length = slice.len();
 
     (1..=(slice_length / 2))
-        .filter_map(
-            |sequence_length| match detect_repetition_of_length(slice, sequence_length) {
-                Some(sequence) => Some((sequence, sequence_length)),
-                None => None,
-            },
-        )
+        .filter_map(|sequence_length| {
+            detect_repetition_of_length(slice, sequence_length)
+                .map(|sequence| (sequence, sequence_length))
+        })
         .collect()
 }
 
@@ -91,20 +89,15 @@ impl ProductIdRangeList {
     fn sum_twice_invalid_ids(&self) -> u64 {
         self.0
             .iter()
-            .map(|range| range.iter())
-            .flatten()
-            .filter_map(|id| {
-                let digits = to_digits(id);
+            .flat_map(|range| range.iter())
+            .filter(|id| {
+                let digits = to_digits(*id);
 
                 if digits.len() % 2 != 0 {
-                    return None;
+                    return false;
                 }
 
-                if detect_repetition_of_length(&digits, digits.len() / 2).is_some() {
-                    Some(id)
-                } else {
-                    None
-                }
+                detect_repetition_of_length(&digits, digits.len() / 2).is_some()
             })
             //.inspect(|id| println!("{}", id))
             .sum()
@@ -113,16 +106,11 @@ impl ProductIdRangeList {
     fn sum_any_invalid_ids(&self) -> u64 {
         self.0
             .iter()
-            .map(|range| range.iter())
-            .flatten()
-            .filter_map(|id| {
-                let digits = to_digits(id);
+            .flat_map(|range| range.iter())
+            .filter(|id| {
+                let digits = to_digits(*id);
 
-                if !detect_repetition(&digits).is_empty() {
-                    Some(id)
-                } else {
-                    None
-                }
+                !detect_repetition(&digits).is_empty()
             })
             //.inspect(|id| println!("{}", id))
             .sum()
@@ -144,10 +132,10 @@ impl DayImpl<Data> for Day<CURRENT_DAY> {
     }
 
     fn one(&self, data: &mut Data) -> Answer {
-        Answer::Number(data.sum_twice_invalid_ids() as u64)
+        Answer::Number(data.sum_twice_invalid_ids())
     }
 
     fn two(&self, data: &mut Data) -> Answer {
-        Answer::Number(data.sum_any_invalid_ids() as u64)
+        Answer::Number(data.sum_any_invalid_ids())
     }
 }
