@@ -62,12 +62,6 @@ impl BatteryBank {
 
         for first_digit in (0..=9).rev() {
             dprintln!("  FIRST DIGIT: {}", first_digit);
-            if *occurances.get(&first_digit).unwrap() >= 2 {
-                dprintln!("    Occurs at least twice!");
-                dprintln!("==> {}", first_digit as u64 * 11);
-                return first_digit as u64 * 11;
-            }
-
             let first_digit_index = lowest_indexes.get(&first_digit).unwrap();
             dprintln!("    Index: {:?}", first_digit_index);
 
@@ -76,10 +70,6 @@ impl BatteryBank {
             }
 
             for second_digit in (0..=9).rev() {
-                if first_digit == second_digit {
-                    continue;
-                }
-
                 dprintln!("    SECOND DIGIT: {}", second_digit);
                 let second_digit_index = highest_indexes.get(&second_digit).unwrap();
                 dprintln!("      Index: {:?}", second_digit_index);
