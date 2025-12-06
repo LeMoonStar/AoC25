@@ -16,28 +16,21 @@ impl From<&str> for PaperDepartmentMap {
         let (mut width, mut height) = (0, 0);
         let mut paper_rolls = HashMap::new();
 
-        value
-            .lines()
-            .enumerate()
-            .inspect(|(y, _)| {
-                if *y + 1 > height {
-                    height = *y + 1
+        value.lines().enumerate().for_each(|(y, line)| {
+            if y + 1 > height {
+                height = y + 1
+            }
+
+            line.chars().enumerate().for_each(|(x, char)| {
+                if x + 1 > width {
+                    width = x + 1
+                }
+
+                if char == '@' {
+                    paper_rolls.insert((x as isize, y as isize), true);
                 }
             })
-            .for_each(|(y, line)| {
-                line.chars()
-                    .enumerate()
-                    .inspect(|(x, _)| {
-                        if *x + 1 > width {
-                            width = *x + 1
-                        }
-                    })
-                    .for_each(|(x, char)| {
-                        if char == '@' {
-                            paper_rolls.insert((x as isize, y as isize), true);
-                        }
-                    })
-            });
+        });
 
         Self {
             paper_rolls,
@@ -70,21 +63,20 @@ impl PaperDepartmentMap {
 
     fn get_all_positions(&self) -> Vec<(isize, isize)> {
         (0..self.width as isize)
-            .map(|x| (0..self.height as isize).map(move |y| (x, y)))
-            .flatten()
+            .flat_map(|x| (0..self.height as isize).map(move |y| (x, y)))
             .collect()
     }
 
     fn get_accessible_paper_rolls(&self) -> Vec<(isize, isize)> {
         self.get_all_positions()
             .into_iter()
-            .filter(|position| self.paper_rolls.contains_key(&position))
-            .filter(|position| self.get_neighbours(&position).iter().count() < 4)
+            .filter(|position| self.paper_rolls.contains_key(position))
+            .filter(|position| self.get_neighbours(position).len() < 4)
             .collect()
     }
 
     fn count_accessible_paper_rolls(&self) -> usize {
-        self.get_accessible_paper_rolls().iter().count()
+        self.get_accessible_paper_rolls().len()
     }
 
     fn try_remove_all(&mut self) -> usize {
@@ -92,17 +84,17 @@ impl PaperDepartmentMap {
 
         loop {
             let to_remove = self.get_accessible_paper_rolls();
-            let to_remove_count = to_remove.iter().count();
+            let to_remove_count = to_remove.len();
 
             if to_remove_count == 0 {
                 return total_removed;
             }
 
             to_remove.iter().for_each(|position| {
-                self.paper_rolls.remove(&position);
+                self.paper_rolls.remove(position);
             });
 
-            total_removed += to_remove.iter().count();
+            total_removed += to_remove.len();
         }
     }
 }
