@@ -35,19 +35,17 @@ struct HomeworkCalculation {
     operation: Operation,
 }
 
-impl From<&[&str]> for HomeworkCalculation {
-    fn from(value: &[&str]) -> Self {
+impl HomeworkCalculation {
+    pub fn normal_from_collumn(value: &[String]) -> Self {
         Self {
             numbers: value[..value.len() - 1]
                 .iter()
                 .map(|v| v.parse().unwrap())
                 .collect(),
-            operation: Operation::from(*value.last().unwrap()),
+            operation: Operation::from(value.last().unwrap().as_str()),
         }
     }
-}
 
-impl HomeworkCalculation {
     pub fn get_result(&self) -> usize {
         self.operation.calculate(&self.numbers)
     }
@@ -55,7 +53,7 @@ impl HomeworkCalculation {
 
 #[derive(Debug, Clone)]
 pub struct HomeworkSheet {
-    calculations: Vec<HomeworkCalculation>,
+    collumns: Vec<Vec<String>>,
 }
 
 impl From<&str> for HomeworkSheet {
@@ -68,19 +66,26 @@ impl From<&str> for HomeworkSheet {
         let num_cols = split_lines.first().unwrap().len();
 
         Self {
-            calculations: (0..num_cols)
-                .map(|i| {
-                    let column: Vec<&str> = split_lines.iter().map(|line| line[i]).collect();
-                    HomeworkCalculation::from(column.as_slice())
-                })
+            collumns: (0..num_cols)
+                .map(|i| split_lines.iter().map(|line| line[i].to_owned()).collect())
                 .collect(),
         }
     }
 }
 
 impl HomeworkSheet {
+    fn get_normal_homework_calculations(&self) -> Vec<HomeworkCalculation> {
+        self.collumns
+            .iter()
+            .map(|v| HomeworkCalculation::normal_from_collumn(&v))
+            .collect()
+    }
+
     fn get_results(&self) -> Vec<usize> {
-        self.calculations.iter().map(|v| v.get_result()).collect()
+        self.get_normal_homework_calculations()
+            .iter()
+            .map(|v| v.get_result())
+            .collect()
     }
 }
 
@@ -91,7 +96,7 @@ impl DayImpl<Data> for Day<CURRENT_DAY> {
     }
 
     fn expected_results() -> (Answer, Answer) {
-        (Answer::Number(4277556), Answer::Number(0))
+        (Answer::Number(4277556), Answer::Number(3263827))
     }
 
     fn init(input: &str) -> (Self, Data) {
