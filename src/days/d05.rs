@@ -1,6 +1,6 @@
 use super::{Answer, Day, DayImpl};
 
-const CURRENT_DAY: u8 = 05;
+const CURRENT_DAY: u8 = 5;
 
 type Data = Vec<u64>;
 impl DayImpl<Data> for Day<CURRENT_DAY> {

@@ -36,7 +36,7 @@ impl Answer {
         false
     }
 
-    fn minify_bitmap(bm: &Vec<Vec<bool>>) -> String {
+    fn minify_bitmap(bm: &[Vec<bool>]) -> String {
         let height = bm.len();
         let width = bm[0].len();
 
