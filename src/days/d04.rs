@@ -48,7 +48,7 @@ impl From<&str> for PaperDepartmentMap {
 }
 
 impl PaperDepartmentMap {
-    fn get_neighbours(&self, subject_position: (isize, isize)) -> HashMap<(isize, isize), bool> {
+    fn get_neighbours(&self, subject_position: &(isize, isize)) -> HashMap<(isize, isize), bool> {
         let mut neighbours = HashMap::with_capacity(8);
 
         for x in -1..=1 {
@@ -68,16 +68,42 @@ impl PaperDepartmentMap {
         neighbours
     }
 
-    fn count_accessible_paper_rolls(&self) -> usize {
+    fn get_all_positions(&self) -> Vec<(isize, isize)> {
         (0..self.width as isize)
-            .map(|x| {
-                (0..self.height as isize)
-                    .filter(move |y| self.paper_rolls.contains_key(&(x, *y)))
-                    .map(move |y| self.get_neighbours((x, y)).iter().count())
-                    .filter(|neighbour_count| *neighbour_count < 4)
-            })
+            .map(|x| (0..self.height as isize).map(move |y| (x, y)))
             .flatten()
-            .count()
+            .collect()
+    }
+
+    fn get_accessible_paper_rolls(&self) -> Vec<(isize, isize)> {
+        self.get_all_positions()
+            .into_iter()
+            .filter(|position| self.paper_rolls.contains_key(&position))
+            .filter(|position| self.get_neighbours(&position).iter().count() < 4)
+            .collect()
+    }
+
+    fn count_accessible_paper_rolls(&self) -> usize {
+        self.get_accessible_paper_rolls().iter().count()
+    }
+
+    fn try_remove_all(&mut self) -> usize {
+        let mut total_removed = 0;
+
+        loop {
+            let to_remove = self.get_accessible_paper_rolls();
+            let to_remove_count = to_remove.iter().count();
+
+            if to_remove_count == 0 {
+                return total_removed;
+            }
+
+            to_remove.iter().for_each(|position| {
+                self.paper_rolls.remove(&position);
+            });
+
+            total_removed += to_remove.iter().count();
+        }
     }
 }
 
@@ -88,7 +114,7 @@ impl DayImpl<Data> for Day<CURRENT_DAY> {
     }
 
     fn expected_results() -> (Answer, Answer) {
-        (Answer::Number(13), Answer::Number(0))
+        (Answer::Number(13), Answer::Number(43))
     }
 
     fn init(input: &str) -> (Self, Data) {
@@ -100,6 +126,6 @@ impl DayImpl<Data> for Day<CURRENT_DAY> {
     }
 
     fn two(&self, data: &mut Data) -> Answer {
-        Answer::Number(0 as u64)
+        Answer::Number(data.try_remove_all() as u64)
     }
 }
