@@ -15,7 +15,7 @@ enum Operation {
 impl Operation {
     fn calculate(&self, numbers: &[usize]) -> usize {
         match self {
-            Self::Multiply => numbers.iter().fold(1, |acc, v| acc * v),
+            Self::Multiply => numbers.iter().product(),
             Self::Addition => numbers.iter().sum(),
         }
     }
@@ -54,20 +54,14 @@ impl HomeworkCalculation {
         let mut numbers: HashMap<usize, usize> =
             HashMap::with_capacity(value.first().unwrap().len());
 
-        value.iter().enumerate().for_each(|(line_num, line)| {
+        value.iter().for_each(|line| {
             line.chars().enumerate().for_each(|(char_num, char)| {
-                if !char.is_digit(10) {
+                if !char.is_ascii_digit() {
                     return;
                 }
                 let mut num = *numbers.get(&char_num).unwrap_or(&0);
 
-                dprintln!(
-                    "num {:?} line_num {:?} char_num {:?} char {:?}",
-                    num,
-                    line_num,
-                    char_num,
-                    char
-                );
+                dprintln!("num {:?} char_num {:?} char {:?}", num, char_num, char);
 
                 num = num * 10 + char.to_digit(10).unwrap() as usize;
 
@@ -78,7 +72,7 @@ impl HomeworkCalculation {
         dprintln!("cephalopod_from_column result: {:?}\n\n", numbers);
 
         Self {
-            numbers: numbers.into_iter().map(|(_, value)| value).collect(),
+            numbers: numbers.into_values().collect(),
             operation: Operation::from(value.last().unwrap().as_str().trim()),
         }
     }
@@ -135,14 +129,14 @@ impl HomeworkSheet {
     fn get_normal_homework_calculations(&self) -> Vec<HomeworkCalculation> {
         self.columns
             .iter()
-            .map(|v| HomeworkCalculation::normal_from_column(&v))
+            .map(|v| HomeworkCalculation::normal_from_column(v))
             .collect()
     }
 
     fn get_cephalopod_homework_calculations(&self) -> Vec<HomeworkCalculation> {
         self.columns
             .iter()
-            .map(|v| HomeworkCalculation::cephalopod_from_column(&v))
+            .map(|v| HomeworkCalculation::cephalopod_from_column(v))
             .collect()
     }
 
