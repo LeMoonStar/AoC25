@@ -39,6 +39,24 @@ fn get_highest_index<T: PartialEq>(sequence: &[T], value: &T) -> Option<usize> {
     )
 }
 
+fn get_highest_possible_number(sequence: &[u8], num_digits: u32) -> Option<u64> {
+    for digit in (0..=9).rev() {
+        if let Some((position, digit)) = sequence.iter().enumerate().find(|v| *v.1 == digit) {
+            if num_digits <= 1 {
+                return Some(*digit as u64);
+            }
+
+            if let Some(following) =
+                get_highest_possible_number(&sequence[(position + 1)..], num_digits - 1)
+            {
+                return Some(*digit as u64 * 10_u64.pow(num_digits - 1) + following);
+            }
+        }
+    }
+
+    None
+}
+
 impl BatteryBank {
     fn get_maximum_sequential_joltage(&self) -> u64 {
         dprintln!("{:?}", self.batteries);
@@ -49,15 +67,6 @@ impl BatteryBank {
 
         let highest_indexes = (0..=9)
             .map(|digit| (digit, get_highest_index(&self.batteries, &digit)))
-            .collect::<HashMap<_, _>>();
-
-        let occurances = (0..=9)
-            .map(|digit| {
-                (
-                    digit,
-                    self.batteries.iter().filter(|v| **v == digit).count(),
-                )
-            })
             .collect::<HashMap<_, _>>();
 
         for first_digit in (0..=9).rev() {
@@ -87,6 +96,10 @@ impl BatteryBank {
 
         panic!("Well fuck");
     }
+
+    fn get_maximum_sequential_joltage_general(&self, num_digits: u32) -> u64 {
+        get_highest_possible_number(&self.batteries, num_digits).unwrap()
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -109,6 +122,13 @@ impl BatteryBankCollection {
             .map(|bank| bank.get_maximum_sequential_joltage())
             .sum()
     }
+
+    fn get_maximum_joltage_general(&self, num_digits: u32) -> u64 {
+        self.banks
+            .iter()
+            .map(|bank| bank.get_maximum_sequential_joltage_general(num_digits))
+            .sum()
+    }
 }
 
 type Data = BatteryBankCollection;
@@ -118,7 +138,7 @@ impl DayImpl<Data> for Day<CURRENT_DAY> {
     }
 
     fn expected_results() -> (Answer, Answer) {
-        (Answer::Number(357), Answer::Number(0))
+        (Answer::Number(357), Answer::Number(3121910778619))
     }
 
     fn init(input: &str) -> (Self, Data) {
@@ -130,6 +150,6 @@ impl DayImpl<Data> for Day<CURRENT_DAY> {
     }
 
     fn two(&self, data: &mut Data) -> Answer {
-        Answer::Number(0 as u64)
+        Answer::Number(data.get_maximum_joltage_general(12))
     }
 }
