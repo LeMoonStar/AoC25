@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use crate::dprintln;
 
 use super::{Answer, Day, DayImpl};
 
@@ -31,9 +31,13 @@ impl From<&str> for Inventory {
 }
 
 impl Inventory {
+    fn is_in_range(value: usize, range: &(usize, usize)) -> bool {
+        range.0 <= value && value <= range.1
+    }
+
     fn is_fresh(&self, ingredient_id: usize) -> bool {
         for range in &self.fresh_ranges {
-            if range.0 <= ingredient_id && ingredient_id <= range.1 {
+            if Self::is_in_range(ingredient_id, range) {
                 return true;
             }
         }
@@ -48,6 +52,39 @@ impl Inventory {
             .filter(|v| self.is_fresh(*v))
             .collect()
     }
+
+    fn get_fresh_ingredient_count(&self) -> usize {
+        let mut ranges = self.fresh_ranges.clone();
+
+        ranges.sort_by_key(|k| k.0);
+
+        let mut merged_ranges: Vec<(usize, usize)> = Vec::with_capacity(ranges.len());
+        merged_ranges.push(ranges[0]);
+
+        for (start, end) in ranges.into_iter().skip(1) {
+            dprintln!("RANGE: {} - {}", start, end);
+            if let Some(last_range) = merged_ranges.last_mut() {
+                if start <= last_range.1 + 1 {
+                    dprintln!(
+                        "  Starts within last range (which ends at {})",
+                        last_range.1
+                    );
+                    dprintln!("    Extending last range to {}", end.max(last_range.1));
+                    last_range.1 = end.max(last_range.1);
+                } else {
+                    dprintln!("  No overlap. adding.");
+                    merged_ranges.push((start, end));
+                }
+            }
+        }
+
+        dprintln!("=> {:?}", merged_ranges);
+
+        merged_ranges
+            .iter()
+            .map(|(start, end)| end - start + 1)
+            .sum()
+    }
 }
 
 type Data = Inventory;
@@ -57,7 +94,7 @@ impl DayImpl<Data> for Day<CURRENT_DAY> {
     }
 
     fn expected_results() -> (Answer, Answer) {
-        (Answer::Number(3), Answer::Number(0))
+        (Answer::Number(3), Answer::Number(14))
     }
 
     fn init(input: &str) -> (Self, Data) {
@@ -69,6 +106,6 @@ impl DayImpl<Data> for Day<CURRENT_DAY> {
     }
 
     fn two(&self, data: &mut Data) -> Answer {
-        Answer::Number(0 as u64)
+        Answer::Number(data.get_fresh_ingredient_count() as u64)
     }
 }
