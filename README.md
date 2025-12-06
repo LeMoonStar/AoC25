@@ -3,8 +3,8 @@
 [![About](https://img.shields.io/badge/Advent%20of%20Code-2025-brightgreen?style=flat-square)](https://adventofcode.com/2025/about)
 [![Language: Rust](https://img.shields.io/badge/Language-Rust-orange.svg?style=flat-square)](https://en.wikipedia.org/wiki/Rust_(programming_language))
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](https://mit-license.org/)
-![Days completed](https://img.shields.io/badge/Days%20completed-5.5-red?style=flat-square)
-![Stars](https://img.shields.io/badge/Stars-11-yellow?style=flat-square)
+![Days completed](https://img.shields.io/badge/Days%20completed-6-red?style=flat-square)
+![Stars](https://img.shields.io/badge/Stars-12-yellow?style=flat-square)
 
 My Advent of Code 2025 Solutions.
 
