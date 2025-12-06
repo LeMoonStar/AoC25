@@ -1,7 +1,3 @@
-use std::collections::HashMap;
-
-use crate::dprintln;
-
 use super::{Answer, Day, DayImpl};
 
 const CURRENT_DAY: u8 = 3;
@@ -24,21 +20,6 @@ impl From<&str> for BatteryBank {
     }
 }
 
-fn get_lowest_index<T: PartialEq>(sequence: &[T], value: &T) -> Option<usize> {
-    Some(sequence.iter().enumerate().find(|(_, v)| *v == value)?.0)
-}
-
-fn get_highest_index<T: PartialEq>(sequence: &[T], value: &T) -> Option<usize> {
-    Some(
-        sequence
-            .iter()
-            .enumerate()
-            .rev()
-            .find(|(_, v)| *v == value)?
-            .0,
-    )
-}
-
 fn get_highest_possible_number(sequence: &[u8], num_digits: u32) -> Option<u64> {
     for digit in (0..=9).rev() {
         if let Some((position, digit)) = sequence.iter().enumerate().find(|v| *v.1 == digit) {
@@ -58,46 +39,7 @@ fn get_highest_possible_number(sequence: &[u8], num_digits: u32) -> Option<u64> 
 }
 
 impl BatteryBank {
-    fn get_maximum_sequential_joltage(&self) -> u64 {
-        dprintln!("{:?}", self.batteries);
-
-        let lowest_indexes = (0..=9)
-            .map(|digit| (digit, get_lowest_index(&self.batteries, &digit)))
-            .collect::<HashMap<_, _>>();
-
-        let highest_indexes = (0..=9)
-            .map(|digit| (digit, get_highest_index(&self.batteries, &digit)))
-            .collect::<HashMap<_, _>>();
-
-        for first_digit in (0..=9).rev() {
-            dprintln!("  FIRST DIGIT: {}", first_digit);
-            let first_digit_index = lowest_indexes.get(&first_digit).unwrap();
-            dprintln!("    Index: {:?}", first_digit_index);
-
-            if first_digit_index.is_none() {
-                continue;
-            }
-
-            for second_digit in (0..=9).rev() {
-                dprintln!("    SECOND DIGIT: {}", second_digit);
-                let second_digit_index = highest_indexes.get(&second_digit).unwrap();
-                dprintln!("      Index: {:?}", second_digit_index);
-
-                if second_digit_index.is_none() {
-                    continue;
-                }
-
-                if second_digit_index.unwrap() > first_digit_index.unwrap() {
-                    dprintln!("==> {}{}", first_digit, second_digit);
-                    return first_digit as u64 * 10 + second_digit as u64;
-                }
-            }
-        }
-
-        panic!("Well fuck");
-    }
-
-    fn get_maximum_sequential_joltage_general(&self, num_digits: u32) -> u64 {
+    fn get_maximum_sequential_joltage(&self, num_digits: u32) -> u64 {
         get_highest_possible_number(&self.batteries, num_digits).unwrap()
     }
 }
@@ -116,17 +58,10 @@ impl From<&str> for BatteryBankCollection {
 }
 
 impl BatteryBankCollection {
-    fn get_maximum_joltage(&self) -> u64 {
+    fn get_maximum_joltage(&self, num_digits: u32) -> u64 {
         self.banks
             .iter()
-            .map(|bank| bank.get_maximum_sequential_joltage())
-            .sum()
-    }
-
-    fn get_maximum_joltage_general(&self, num_digits: u32) -> u64 {
-        self.banks
-            .iter()
-            .map(|bank| bank.get_maximum_sequential_joltage_general(num_digits))
+            .map(|bank| bank.get_maximum_sequential_joltage(num_digits))
             .sum()
     }
 }
@@ -146,10 +81,10 @@ impl DayImpl<Data> for Day<CURRENT_DAY> {
     }
 
     fn one(&self, data: &mut Data) -> Answer {
-        Answer::Number(data.get_maximum_joltage())
+        Answer::Number(data.get_maximum_joltage(2))
     }
 
     fn two(&self, data: &mut Data) -> Answer {
-        Answer::Number(data.get_maximum_joltage_general(12))
+        Answer::Number(data.get_maximum_joltage(12))
     }
 }
