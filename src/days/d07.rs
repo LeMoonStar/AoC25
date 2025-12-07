@@ -71,6 +71,43 @@ impl TachyonManifold {
 
         (splits, rays)
     }
+
+    fn perform_splits_overlapping(
+        &self,
+        rays: HashMap<usize, usize>,
+        layer: usize,
+    ) -> (usize, HashMap<usize, usize>) {
+        let mut splits = 0;
+        let new_rays = rays
+            .iter()
+            .flat_map(|ray| {
+                if let Some(_) = self.splitters.get(&(*ray.0, layer)) {
+                    splits += 1;
+                    vec![(ray.0 - 1, ray.1), (ray.0 + 1, ray.1)]
+                } else {
+                    vec![(*ray.0, ray.1)]
+                }
+            })
+            .fold(HashMap::new(), |mut acc, (pos, count)| {
+                *acc.entry(pos).or_insert(0) += count;
+                acc
+            });
+
+        return (splits, new_rays);
+    }
+
+    fn trace_rays_overlapping(&self) -> (usize, HashMap<usize, usize>) {
+        let (mut splits, mut rays) = (0, HashMap::new());
+        rays.insert(self.start_position.0, 1);
+
+        for layer in 0..self.depth {
+            let (new_splits, new_rays) = self.perform_splits_overlapping(rays, layer);
+            rays = new_rays;
+            splits += new_splits;
+        }
+
+        (splits, rays)
+    }
 }
 
 type Data = TachyonManifold;
@@ -92,6 +129,12 @@ impl DayImpl<Data> for Day<CURRENT_DAY> {
     }
 
     fn two(&self, data: &mut Data) -> Answer {
-        Answer::Number(0 as u64)
+        Answer::Number(
+            data.trace_rays_overlapping()
+                .1
+                .iter()
+                .map(|(_, count)| *count as u64)
+                .sum(),
+        )
     }
 }
